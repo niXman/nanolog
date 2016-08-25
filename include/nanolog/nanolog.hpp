@@ -93,7 +93,7 @@
 #define __NNL_TUPLE_IS_EMPTY(...) \
   __NNL__IS_EMPTY( \
     __NNL_HAS_COMMA(__VA_ARGS__), \
-    __NNL_HAS_COMMA(__NNL__TRIGGER_PARENTHESIS_ __VA_ARGS__),                 \
+    __NNL_HAS_COMMA(__NNL__TRIGGER_PARENTHESIS_ __VA_ARGS__), \
     __NNL_HAS_COMMA(__VA_ARGS__ (/*empty*/)), \
     __NNL_HAS_COMMA(__NNL__TRIGGER_PARENTHESIS_ __VA_ARGS__ (/*empty*/)) \
   )
@@ -126,32 +126,38 @@
 #define __NNL_ENUM_4(x) x ## 0, x ## 1, x ## 2, x ## 3, x ## 4
 #define __NNL_ENUM_5(x) x ## 0, x ## 1, x ## 2, x ## 3, x ## 4, x ## 5
 #define __NNL_ENUM_6(x) x ## 0, x ## 1, x ## 2, x ## 3, x ## 4, x ## 5, x ## 6
-#define __NNL_ENUM_7(x) x ## 0, x ## 1, x ## 2, x ## 3, x ## 4, x ## 5, x ## 6, x ## 7
-#define __NNL_ENUM_8(x) x ## 0, x ## 1, x ## 2, x ## 3, x ## 4, x ## 5, x ## 6, x ## 7, x ## 8
-#define __NNL_ENUM_9(x) x ## 0, x ## 1, x ## 2, x ## 3, x ## 4, x ## 5, x ## 6, x ## 7, x ## 8, x ## 9
+#define __NNL_ENUM_7(x) x ## 0, x ## 1, x ## 2, x ## 3, x ## 4, x ## 5, x ## 6 \
+  , x ## 7
+#define __NNL_ENUM_8(x) x ## 0, x ## 1, x ## 2, x ## 3, x ## 4, x ## 5, x ## 6 \
+  , x ## 7, x ## 8
+#define __NNL_ENUM_9(x) x ## 0, x ## 1, x ## 2, x ## 3, x ## 4, x ## 5, x ## 6 \
+  , x ## 7, x ## 8, x ## 9
 
 #define __NNL_ENUM(x, n) \
     __NNL_CAT(__NNL_ENUM_, n)(x)
 
 #define __NNL_ENUM_PAIR_0(l, sep, r) l ## 0 sep r ## 0
 #define __NNL_ENUM_PAIR_1(l, sep, r) l ## 0 sep r ## 0, l ## 1 sep r ## 1
-#define __NNL_ENUM_PAIR_2(l, sep, r) l ## 0 sep r ## 0, l ## 1 sep r ## 1, l ## 2 sep r ## 2
-#define __NNL_ENUM_PAIR_3(l, sep, r) l ## 0 sep r ## 0, l ## 1 sep r ## 1, l ## 2 sep r ## 2\
-    , l ## 3 sep r ## 3
-#define __NNL_ENUM_PAIR_4(l, sep, r) l ## 0 sep r ## 0, l ## 1 sep r ## 1, l ## 2 sep r ## 2\
-    , l ## 3 sep r ## 3, l ## 4 sep r ## 4
-#define __NNL_ENUM_PAIR_5(l, sep, r) l ## 0 sep r ## 0, l ## 1 sep r ## 1, l ## 2 sep r ## 2\
-    , l ## 3 sep r ## 3, l ## 4 sep r ## 4, l ## 5 sep r ## 5
-#define __NNL_ENUM_PAIR_6(l, sep, r) l ## 0 sep r ## 0, l ## 1 sep r ## 1, l ## 2 sep r ## 2\
-    , l ## 3 sep r ## 3, l ## 4 sep r ## 4, l ## 5 sep r ## 5, l ## 6 sep r ## 6
-#define __NNL_ENUM_PAIR_7(l, sep, r) l ## 0 sep r ## 0, l ## 1 sep r ## 1, l ## 2 sep r ## 2\
-    , l ## 3 sep r ## 3, l ## 4 sep r ## 4, l ## 5 sep r ## 5, l ## 6 sep r ## 6, l ## 7 sep r ## 7
-#define __NNL_ENUM_PAIR_8(l, sep, r) l ## 0 sep r ## 0, l ## 1 sep r ## 1, l ## 2 sep r ## 2\
-    , l ## 3 sep r ## 3, l ## 4 sep r ## 4, l ## 5 sep r ## 5, l ## 6 sep r ## 6 \
-    , l ## 7 sep r ## 7, l ## 8 sep r ## 8
-#define __NNL_ENUM_PAIR_9(l, sep, r) l ## 0 sep r ## 0, l ## 1 sep r ## 1, l ## 2 sep r ## 2\
-    , l ## 3 sep r ## 3, l ## 4 sep r ## 4, l ## 5 sep r ## 5, l ## 6 sep r ## 6 \
-    , l ## 7 sep r ## 7, l ## 8 sep r ## 8, l ## 9 sep r ## 9
+#define __NNL_ENUM_PAIR_2(l, sep, r) l ## 0 sep r ## 0, l ## 1 sep r ## 1 \
+  , l ## 2 sep r ## 2
+#define __NNL_ENUM_PAIR_3(l, sep, r) l ## 0 sep r ## 0, l ## 1 sep r ## 1 \
+  , l ## 2 sep r ## 2, l ## 3 sep r ## 3
+#define __NNL_ENUM_PAIR_4(l, sep, r) l ## 0 sep r ## 0, l ## 1 sep r ## 1 \
+  , l ## 2 sep r ## 2, l ## 3 sep r ## 3, l ## 4 sep r ## 4
+#define __NNL_ENUM_PAIR_5(l, sep, r) l ## 0 sep r ## 0, l ## 1 sep r ## 1 \
+  , l ## 2 sep r ## 2, l ## 3 sep r ## 3, l ## 4 sep r ## 4, l ## 5 sep r ## 5
+#define __NNL_ENUM_PAIR_6(l, sep, r) l ## 0 sep r ## 0, l ## 1 sep r ## 1 \
+  , l ## 2 sep r ## 2, l ## 3 sep r ## 3, l ## 4 sep r ## 4, l ## 5 sep r ## 5 \
+  , l ## 6 sep r ## 6
+#define __NNL_ENUM_PAIR_7(l, sep, r) l ## 0 sep r ## 0, l ## 1 sep r ## 1 \
+  , l ## 2 sep r ## 2, l ## 3 sep r ## 3, l ## 4 sep r ## 4, l ## 5 sep r ## 5 \
+  , l ## 6 sep r ## 6, l ## 7 sep r ## 7
+#define __NNL_ENUM_PAIR_8(l, sep, r) l ## 0 sep r ## 0, l ## 1 sep r ## 1 \
+  , l ## 2 sep r ## 2, l ## 3 sep r ## 3, l ## 4 sep r ## 4, l ## 5 sep r ## 5 \
+  , l ## 6 sep r ## 6, l ## 7 sep r ## 7, l ## 8 sep r ## 8
+#define __NNL_ENUM_PAIR_9(l, sep, r) l ## 0 sep r ## 0, l ## 1 sep r ## 1 \
+  , l ## 2 sep r ## 2, l ## 3 sep r ## 3, l ## 4 sep r ## 4, l ## 5 sep r ## 5 \
+  , l ## 6 sep r ## 6, l ## 7 sep r ## 7, l ## 8 sep r ## 8, l ## 9 sep r ## 9
 
 #define __NNL_ENUM_PAIR(l, sep, r, n) \
   __NNL_CAT(__NNL_ENUM_PAIR_, n)(l, sep, r)
@@ -161,11 +167,16 @@
 #define __NNL_ENUM_BF_2(x) x ## 0 % x ## 1 % x ## 2
 #define __NNL_ENUM_BF_3(x) x ## 0 % x ## 1 % x ## 2 % x ## 3
 #define __NNL_ENUM_BF_4(x) x ## 0 % x ## 1 % x ## 2 % x ## 3 % x ## 4
-#define __NNL_ENUM_BF_5(x) x ## 0 % x ## 1 % x ## 2 % x ## 3 % x ## 4 % x ## 5
-#define __NNL_ENUM_BF_6(x) x ## 0 % x ## 1 % x ## 2 % x ## 3 % x ## 4 % x ## 5 % x ## 6
-#define __NNL_ENUM_BF_7(x) x ## 0 % x ## 1 % x ## 2 % x ## 3 % x ## 4 % x ## 5 % x ## 6 % x ## 7
-#define __NNL_ENUM_BF_8(x) x ## 0 % x ## 1 % x ## 2 % x ## 3 % x ## 4 % x ## 5 % x ## 6 % x ## 7 % x ## 8
-#define __NNL_ENUM_BF_9(x) x ## 0 % x ## 1 % x ## 2 % x ## 3 % x ## 4 % x ## 5 % x ## 6 % x ## 7 % x ## 8 % x ## 9
+#define __NNL_ENUM_BF_5(x) x ## 0 % x ## 1 % x ## 2 % x ## 3 % x ## 4 \
+  % x ## 5
+#define __NNL_ENUM_BF_6(x) x ## 0 % x ## 1 % x ## 2 % x ## 3 % x ## 4 \
+  % x ## 5 % x ## 6
+#define __NNL_ENUM_BF_7(x) x ## 0 % x ## 1 % x ## 2 % x ## 3 % x ## 4 \
+  % x ## 5 % x ## 6 % x ## 7
+#define __NNL_ENUM_BF_8(x) x ## 0 % x ## 1 % x ## 2 % x ## 3 % x ## 4 \
+  % x ## 5 % x ## 6 % x ## 7 % x ## 8
+#define __NNL_ENUM_BF_9(x) x ## 0 % x ## 1 % x ## 2 % x ## 3 % x ## 4 \
+  % x ## 5 % x ## 6 % x ## 7 % x ## 8 % x ## 9
 
 #define __NNL_ENUM_BF(x, n) \
   __NNL_CAT(__NNL_ENUM_BF_, n)(x)
@@ -188,30 +199,34 @@
 
 /***************************************************************************/
 
+#define __NNL_FMT_ERROR_LVL(lvl) \
+  (lvl==::NNL::info?'I':lvl==::NNL::debug?'D':lvl==::NNL::warning?'W':'E')
+
 #ifdef NNL_USE_DATETIME
 # define  __NNL_MAKE_DATETIME_BUF() \
    char dtbuf[27] = {' '}; \
    dtbuf[26] = 0;
 #  if defined(NNL_USE_PRINTF)
 #    define  __NNL_MAKE_FMT_STRING() \
-       "%s(%5zu)[%s, %-26s]: "
+       "%s(%-5zu)[%c, %-26s]: "
 #    define  __NNL_MAKE_ARGS_STRING(file, line, lvl) \
-       file, line, level_str(lvl), datetime_str(dtbuf)
+       file, line, __NNL_FMT_ERROR_LVL(lvl), datetime_str(dtbuf)
 #  else // !NNL_USE_PRINTF
 #    define  __NNL_MAKE_FMT_STRING() \
-       ::boost::format("%s(%5d)[%s, %-26s]: ") % file % line % level_str(lvl) % datetime_str(dtbuf)
+       ::boost::format("%s(%-5d)[%c, %-26s]: ") % file % line \
+         % __NNL_FMT_ERROR_LVL(lvl) % datetime_str(dtbuf)
 #    define  __NNL_MAKE_ARGS_STRING(file, line, lvl)
 #  endif // NNL_USE_PRINTF
 #else // !NNL_USE_DATETIME
 #  define  __NNL_MAKE_DATETIME_BUF()
 #  if defined(NNL_USE_PRINTF)
 #    define  __NNL_MAKE_FMT_STRING() \
-       "%s(%5zu)[%s]: "
+       "%s(%-5zu)[%c]: "
 #    define  __NNL_MAKE_ARGS_STRING(file, line, lvl) \
-       file, line, level_str(lvl)
+       file, line, __NNL_FMT_ERROR_LVL(lvl)
 #  else // !NNL_USE_PRINTF
 #    define  __NNL_MAKE_FMT_STRING() \
-       ::boost::format("%s[%5d)[%s]: ") % file % line % level_str(lvl)
+       ::boost::format("%s(%-5d)[%c]: ") % file % line % __NNL_FMT_ERROR_LVL(lvl)
 #    define  __NNL_MAKE_ARGS_STRING(file, line, lvl)
 #  endif // NNL_USE_PRINTF
 #endif // NNL_USE_DATETIME
@@ -219,7 +234,8 @@
 #if defined(NNL_USE_PRINTF)
 #  define __NNL_MAKE_WRITE_BODY(n) \
   __NNL_MAKE_DATETIME_BUF() \
-  ::std::fprintf(os, __NNL_MAKE_FMT_STRING(), __NNL_MAKE_ARGS_STRING(file, line, lvl)); \
+  ::std::fprintf(os, __NNL_MAKE_FMT_STRING(), \
+    __NNL_MAKE_ARGS_STRING(file, line, lvl)); \
   ::std::fprintf(os, fmt, __NNL_ENUM(arg, n));
 #else
 #  define __NNL_MAKE_WRITE_BODY(n) \
@@ -229,8 +245,8 @@
 
 #define __NNL_DECLARE_WRITE(n) \
     template<__NNL_ENUM(typename Arg, n)> \
-    void write(__NNL_STREAM_TYPE os, const char *file, std::size_t line, elevel lvl, const char *fmt \
-               ,__NNL_ENUM_PAIR(const Arg, &, arg, n)) \
+    void write(__NNL_STREAM_TYPE os, const char *file, std::size_t line, elevel lvl \
+               , const char *fmt,__NNL_ENUM_PAIR(const Arg, &, arg, n)) \
     { \
         __NNL_MAKE_WRITE_BODY(n) \
     }
@@ -499,19 +515,17 @@ enum elevel {
   ,error
 };
 
-inline const char* level_str(const elevel lvl) {
-  return (
-    lvl == info ? "info   "
-      : lvl == debug ? "debug  "
-        : lvl == warning ? "warning"
-          : "error  "
-  );
-}
-
-void write(__NNL_STREAM_TYPE os, const char *file, std::size_t line, elevel lvl, const char *fmt) {
+void write(__NNL_STREAM_TYPE os, const char *file
+    ,std::size_t line, elevel lvl, const char *fmt)
+{
     __NNL_MAKE_DATETIME_BUF()
 #if defined(NNL_USE_PRINTF)
-    ::std::fprintf(os, __NNL_MAKE_FMT_STRING() "%s", __NNL_MAKE_ARGS_STRING(file, line, lvl), fmt);
+    ::std::fprintf(
+         os
+        ,__NNL_MAKE_FMT_STRING() "%s"
+        ,__NNL_MAKE_ARGS_STRING(file, line, lvl)
+        , fmt
+    );
 #else // !NNL_USE_PRINTF
     os << __NNL_MAKE_FMT_STRING() << fmt;
 #endif // NNL_USE_PRINTF
