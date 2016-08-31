@@ -42,12 +42,14 @@
 #define NNL_USE_PRINTF
 #endif
 
+#include <cassert>
+
 #if defined(NNL_USE_PRINTF)
 #  include <cstdio>
 #  define __NNL_STREAM_TYPE ::std::FILE*
 #elif defined(NNL_USE_BOOST_FORMAT)
 #  include <boost/format.hpp>
-#  include <ostream>
+#  include <fstream>
 #  define __NNL_STREAM_TYPE ::std::ostream&
 #else
 #  error please define one of NNL_USE_PRINTF or NNL_USE_BOOST_FORMAT
@@ -552,13 +554,22 @@ __NNL_DECLARE_WRITE(9)
 #  else
 #    define __NNL_FLUSH_FUNC(os)
 #  endif
+#  define __NNL_CREATE_LOG_STREAM(oname, path) \
+     ::std::FILE *oname = ::std::fopen(path, "a+"); \
+     assert(oname != 0);
 #else
 #  if defined(NNL_FLUSH_EACH_RECORD)
 #    define __NNL_FLUSH_FUNC(os) os.flush();
 #  else
 #    define __NNL_FLUSH_FUNC(os)
 #  endif
+#  define __NNL_CREATE_LOG_STREAM(oname, path) \
+     ::std::ofstream oname(path, ::std::ios::out|::std::ios::app); \
+     assert(oname.is_open());
 #endif
+
+#define NNL_CREATE_LOG_STREAM(oname, path) \
+    __NNL_CREATE_LOG_STREAM(oname, path)
 
 #define __NNL_WITHOUT_ARGS(os, file, line, lvl, fmt, ...) \
   ::NNL::write(os, file, line, lvl, fmt);
