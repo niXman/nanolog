@@ -36,6 +36,8 @@
 #ifndef __NANOLOG__NANOLOG_HPP__INCLUDED
 #define __NANOLOG__NANOLOG_HPP__INCLUDED
 
+#ifndef NNL_DISABLE_LOGGING
+
 /***************************************************************************/
 
 #if !defined(NNL_USE_PRINTF) && !defined(NNL_USE_BOOST_FORMAT)
@@ -260,22 +262,19 @@ namespace NNL {
 /***************************************************************************/
 
 #ifdef NNL_THREAD_SAFE
-#  define __NNL_MUTEX_TYPE(m) ::NNL::mutex m;
-#  define __NNL_LOCKGUARD_TYPE(l, m) ::NNL::lock_guard l(m);
-
 #  if NNL_THREAD_SAFE == 0 // pthread
 
 struct mutex {
     mutex() {
-        ::pthread_mutex_init(&m, 0);
+        assert(0 == ::pthread_mutex_init(&m, 0));
     }
     ~mutex() {
         unlock();
-        ::pthread_mutex_destroy(&m);
+        assert(0 == ::pthread_mutex_destroy(&m));
     }
-    
-    void lock() { ::pthread_mutex_lock(&m); }
-    void unlock() { ::pthread_mutex_unlock(&m); }
+
+    void lock() { assert(0 == ::pthread_mutex_lock(&m)); }
+    void unlock() { assert(0 == ::pthread_mutex_unlock(&m)); }
 
 private:
     ::pthread_mutex_t m;
@@ -290,7 +289,7 @@ struct mutex {
     ~mutex() {
         unlock();
     }
-    
+
     void lock() { m.lock(); }
     void unlock() { m.unlock(); }
 
@@ -298,18 +297,21 @@ private:
     ::std::mutex m;
 };
 
-#  endif // NNL_THREAD_SAFE == 0 || NNL_THREAD_SAFE == 1
+#  endif // NNL_THREAD_SAFE == 0
 
 struct lock_guard {
     lock_guard(::NNL::mutex &m)
-        :m(m)
-    { m.lock(); }
+        :m_m(m)
+    { m_m.lock(); }
     ~lock_guard()
-    { m.unlock(); }
+    { m_m.unlock(); }
 
 private:
-    ::NNL::mutex &m;
+    ::NNL::mutex &m_m;
 };
+
+#  define __NNL_MUTEX_TYPE(m) ::NNL::mutex m;
+#  define __NNL_LOCKGUARD_TYPE(l, m) ::NNL::lock_guard l(m);
 
 #else
 #  define __NNL_MUTEX_TYPE(m)
@@ -368,8 +370,6 @@ inline const char* datetime_str(char *buf) {
       return len;
     }
 
-#define __NNL_IS_LEAP_YEAR(year) (!(year%4) && ((year%100) || !(year%400)))
-
     static std::tm* time_t_to_tm(const std::time_t t, std::tm *r) {
       static const short spm[13] = {
          0
@@ -386,16 +386,16 @@ inline const char* datetime_str(char *buf) {
         ,(31+28+31+30+31+30+31+31+30+31+30)
         ,(31+28+31+30+31+30+31+31+30+31+30+31)
       };
-      static const int SPD = 24*60*60;
-      time_t i, work = t % SPD;
-      r->tm_sec = work%60;
-      work/=60;
-      r->tm_min = work%60;
-      r->tm_hour = work/60;
+      static const int SPD = 24*60*60; // seconds per day
+      time_t i = 1970, work = t % SPD;
+      r->tm_sec = work % 60;
+      work /= 60;
+      r->tm_min = work % 60;
+      r->tm_hour = work / 60;
       work = t / SPD;
       r->tm_wday = (4+work) % 7;
-      for ( i = 1970; ; ++i ) {
-        const time_t k = __NNL_IS_LEAP_YEAR(i) ? 366 : 365;
+      for ( ; ; ++i ) {
+        const time_t k = (!(i % 4) && ((i % 100) || !(i % 400))) ? 366 : 365;
         if ( work >= k )
           work -= k;
         else
@@ -405,7 +405,7 @@ inline const char* datetime_str(char *buf) {
       r->tm_yday = work;
 
       r->tm_mday = 1;
-      if ( __NNL_IS_LEAP_YEAR(i) && (work > 58) ) {
+      if ( (!(i % 4) && ((i % 100) || !(i % 400))) && (work > 58) ) {
         if ( work == 59 )
           r->tm_mday = 2;
         work -= 1;
@@ -554,22 +554,28 @@ __NNL_DECLARE_WRITE(9)
 #  else
 #    define __NNL_FLUSH_FUNC(os)
 #  endif
-#  define __NNL_CREATE_LOG_STREAM(oname, path) \
-     ::std::FILE *oname = ::std::fopen(path, "a+"); \
-     assert(oname != 0);
+#  define __NNL_CREATE_LOG_STREAM(sname, path) \
+     ::std::FILE *sname = ::std::fopen(path, "a+b"); \
+     assert(sname != 0);
+#  define __NNL_CLOSE_LOG_STREAM(sname) \
+     if ( sname ) { \
+       ::std::fclose(sname); \
+       sname = 0; \
+     }
 #else
 #  if defined(NNL_FLUSH_EACH_RECORD)
 #    define __NNL_FLUSH_FUNC(os) os.flush();
 #  else
 #    define __NNL_FLUSH_FUNC(os)
 #  endif
-#  define __NNL_CREATE_LOG_STREAM(oname, path) \
-     ::std::ofstream oname(path, ::std::ios::out|::std::ios::app); \
-     assert(oname.is_open());
+#  define __NNL_CREATE_LOG_STREAM(sname, path) \
+     ::std::ofstream sname(path, ::std::ios::out|::std::ios::app|std::ios::binary); \
+     assert(sname.is_open());
+#  define __NNL_CLOSE_LOG_STREAM(sname) \
+     if ( sname.is_open() ) { \
+       sname.close(); \
+     }
 #endif
-
-#define NNL_CREATE_LOG_STREAM(oname, path) \
-    __NNL_CREATE_LOG_STREAM(oname, path)
 
 #define __NNL_WITHOUT_ARGS(os, file, line, lvl, fmt, ...) \
   ::NNL::write(os, file, line, lvl, fmt);
@@ -591,11 +597,30 @@ __NNL_DECLARE_WRITE(9)
     __NNL_FLUSH_FUNC(os) \
   } while(0);
 
-#define NNL_LOGI(os, fmt, ...) __NNL_LOG(os, ::NNL::info, fmt, __VA_ARGS__)
-#define NNL_LOGD(os, fmt, ...) __NNL_LOG(os, ::NNL::debug, fmt, __VA_ARGS__)
-#define NNL_LOGW(os, fmt, ...) __NNL_LOG(os, ::NNL::warning, fmt, __VA_ARGS__)
-#define NNL_LOGE(os, fmt, ...) __NNL_LOG(os, ::NNL::error, fmt, __VA_ARGS__)
+# define NNL_LOGI(os, fmt, ...) __NNL_LOG(os, ::NNL::info, fmt, __VA_ARGS__)
+# define NNL_LOGD(os, fmt, ...) __NNL_LOG(os, ::NNL::debug, fmt, __VA_ARGS__)
+# define NNL_LOGW(os, fmt, ...) __NNL_LOG(os, ::NNL::warning, fmt, __VA_ARGS__)
+# define NNL_LOGE(os, fmt, ...) __NNL_LOG(os, ::NNL::error, fmt, __VA_ARGS__)
+# define NNL_LOG_INFO(os, fmt, ...) NNL_LOGI(os, ::NNL::info, fmt, __VA_ARGS__)
+# define NNL_LOG_DEBUG(os, fmt, ...) NNL_LOGD(os, ::NNL::debug, fmt, __VA_ARGS__)
+# define NNL_LOG_WARNING(os, fmt, ...) NNL_LOGW(os, ::NNL::warning, fmt, __VA_ARGS__)
+# define NNL_LOG_ERROR(os, fmt, ...) NNL_LOGE(os, ::NNL::error, fmt, __VA_ARGS__)
+# define NNL_CREATE_LOG_STREAM(sname, path) __NNL_CREATE_LOG_STREAM(sname, path)
+# define NNL_CLOSE_LOG_STREAM(sname) __NNL_CLOSE_LOG_STREAM(sname)
+#else // NNL_DISABLE_LOGGING
+# define NNL_LOGI(os, fmt, ...)
+# define NNL_LOGD(os, fmt, ...)
+# define NNL_LOGW(os, fmt, ...)
+# define NNL_LOGE(os, fmt, ...)
+# define NNL_LOG_INFO(os, fmt, ...)
+# define NNL_LOG_DEBUG(os, fmt, ...)
+# define NNL_LOG_WARNING(os, fmt, ...)
+# define NNL_LOG_ERROR(os, fmt, ...)
+# define NNL_CREATE_LOG_STREAM(sname, path)
+# define NNL_CLOSE_LOG_STREAM(sname)
 
 /***************************************************************************/
+
+#endif // NNL_DISABLE_LOGGING
 
 #endif // __NANOLOG__NANOLOG_HPP__INCLUDED
