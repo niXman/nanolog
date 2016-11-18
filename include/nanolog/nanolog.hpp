@@ -597,14 +597,33 @@ __NNL_DECLARE_WRITE(9)
     __NNL_FLUSH_FUNC(os) \
   } while(0);
 
-# define NNL_LOGI(os, fmt, ...) __NNL_LOG(os, ::NNL::info, fmt, __VA_ARGS__)
-# define NNL_LOGD(os, fmt, ...) __NNL_LOG(os, ::NNL::debug, fmt, __VA_ARGS__)
-# define NNL_LOGW(os, fmt, ...) __NNL_LOG(os, ::NNL::warning, fmt, __VA_ARGS__)
-# define NNL_LOGE(os, fmt, ...) __NNL_LOG(os, ::NNL::error, fmt, __VA_ARGS__)
-# define NNL_LOG_INFO(os, fmt, ...) NNL_LOGI(os, fmt, __VA_ARGS__)
-# define NNL_LOG_DEBUG(os, fmt, ...) NNL_LOGD(os, fmt, __VA_ARGS__)
-# define NNL_LOG_WARNING(os, fmt, ...) NNL_LOGW(os, fmt, __VA_ARGS__)
-# define NNL_LOG_ERROR(os, fmt, ...) NNL_LOGE(os, fmt, __VA_ARGS__)
+# define __NNL_LOGI(os, fmt, ...) __NNL_LOG(os, ::NNL::info, fmt, __VA_ARGS__)
+# define __NNL_LOGD(os, fmt, ...) __NNL_LOG(os, ::NNL::debug, fmt, __VA_ARGS__)
+# define __NNL_LOGW(os, fmt, ...) __NNL_LOG(os, ::NNL::warning, fmt, __VA_ARGS__)
+# define __NNL_LOGE(os, fmt, ...) __NNL_LOG(os, ::NNL::error, fmt, __VA_ARGS__)
+
+/***************************************************************************/
+
+# define NNL_LOGI(os, fmt, ...) __NNL_LOGI(os, fmt, __VA_ARGS__)
+# define NNL_LOGD(os, fmt, ...) __NNL_LOGD(os, fmt, __VA_ARGS__)
+# define NNL_LOGW(os, fmt, ...) __NNL_LOGW(os, fmt, __VA_ARGS__)
+# define NNL_LOGE(os, fmt, ...) __NNL_LOGE(os, fmt, __VA_ARGS__)
+
+# define NNL_LOGI_IF(expr, os, fmt, ...) if (expr) __NNL_LOGI(os, fmt, __VA_ARGS__)
+# define NNL_LOGD_IF(expr, os, fmt, ...) if (expr) __NNL_LOGD(os, fmt, __VA_ARGS__)
+# define NNL_LOGW_IF(expr, os, fmt, ...) if (expr) __NNL_LOGW(os, fmt, __VA_ARGS__)
+# define NNL_LOGE_IF(expr, os, fmt, ...) if (expr) __NNL_LOGE(os, fmt, __VA_ARGS__)
+
+# define NNL_LOG_INFO(os, fmt, ...) __NNL_LOGI(os, fmt, __VA_ARGS__)
+# define NNL_LOG_DEBUG(os, fmt, ...) __NNL_LOGD(os, fmt, __VA_ARGS__)
+# define NNL_LOG_WARNING(os, fmt, ...) __NNL_LOGW(os, fmt, __VA_ARGS__)
+# define NNL_LOG_ERROR(os, fmt, ...) __NNL_LOGE(os, fmt, __VA_ARGS__)
+
+# define NNL_LOG_INFO_IF(expr, os, fmt, ...) if (expr) __NNL_LOGI(os, fmt, __VA_ARGS__)
+# define NNL_LOG_DEBUG_IF(expr, os, fmt, ...) if (expr) __NNL_LOGD(os, fmt, __VA_ARGS__)
+# define NNL_LOG_WARNING_IF(expr, os, fmt, ...) if (expr) __NNL_LOGW(os, fmt, __VA_ARGS__)
+# define NNL_LOG_ERROR_IF(expr, os, fmt, ...) if (expr) __NNL_LOGE(os, fmt, __VA_ARGS__)
+
 # define NNL_CREATE_LOG_STREAM(sname, path) __NNL_CREATE_LOG_STREAM(sname, path)
 # define NNL_CLOSE_LOG_STREAM(sname) __NNL_CLOSE_LOG_STREAM(sname)
 #else // NNL_DISABLE_LOGGING
@@ -612,10 +631,22 @@ __NNL_DECLARE_WRITE(9)
 # define NNL_LOGD(os, fmt, ...)
 # define NNL_LOGW(os, fmt, ...)
 # define NNL_LOGE(os, fmt, ...)
+
+# define NNL_LOGI_IF(expr, os, fmt, ...)
+# define NNL_LOGD_IF(expr, os, fmt, ...)
+# define NNL_LOGW_IF(expr, os, fmt, ...)
+# define NNL_LOGE_IF(expr, os, fmt, ...)
+
 # define NNL_LOG_INFO(os, fmt, ...)
 # define NNL_LOG_DEBUG(os, fmt, ...)
 # define NNL_LOG_WARNING(os, fmt, ...)
 # define NNL_LOG_ERROR(os, fmt, ...)
+
+# define NNL_LOG_INFO_IF(expr, os, fmt, ...)
+# define NNL_LOG_DEBUG_IF(expr, os, fmt, ...)
+# define NNL_LOG_WARNING_IF(expr, os, fmt, ...)
+# define NNL_LOG_ERROR_IF(expr, os, fmt, ...)
+
 # define NNL_CREATE_LOG_STREAM(sname, path)
 # define NNL_CLOSE_LOG_STREAM(sname)
 
