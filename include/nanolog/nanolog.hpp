@@ -322,7 +322,7 @@ private:
 
 #ifdef NNL_USE_DATETIME
 
-struct __init {
+static struct __init {
   __init() {
     std::time_t t = time(0);
     std::tm *lt = localtime(&t);
@@ -517,7 +517,7 @@ enum elevel {
   ,error
 };
 
-void write(__NNL_STREAM_TYPE os, const char *file
+inline void write(__NNL_STREAM_TYPE os, const char *file
     ,std::size_t line, elevel lvl, const char *fmt)
 {
     __NNL_MAKE_DATETIME_BUF()
