@@ -187,22 +187,6 @@
 
 /***************************************************************************/
 
-#define __NNL_IS_ZERO_0 1
-#define __NNL_IS_ZERO_1 0
-#define __NNL_IS_ZERO_2 0
-#define __NNL_IS_ZERO_3 0
-#define __NNL_IS_ZERO_4 0
-#define __NNL_IS_ZERO_5 0
-#define __NNL_IS_ZERO_6 0
-#define __NNL_IS_ZERO_7 0
-#define __NNL_IS_ZERO_8 0
-#define __NNL_IS_ZERO_9 0
-
-#define __NNL_IS_ZERO(n) \
-  __NNL_CAT(__NNL_IS_ZERO_, n)
-
-/***************************************************************************/
-
 #define __NNL_FMT_ERROR_LVL(lvl) \
   (lvl==::NNL::info?'I':lvl==::NNL::debug?'D':lvl==::NNL::warning?'W':'E')
 
