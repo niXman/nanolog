@@ -41,7 +41,7 @@
 /***************************************************************************/
 
 #if !defined(NNL_USE_PRINTF) && !defined(NNL_USE_BOOST_FORMAT)
-#define NNL_USE_PRINTF
+#  define NNL_USE_PRINTF
 #endif
 
 #include <cassert>
