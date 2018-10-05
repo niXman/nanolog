@@ -1,5 +1,5 @@
 
-// Copyright (c) 2015-2017 niXman (i dot nixman dog gmail dot com). All
+// Copyright (c) 2015-2018 niXman (i dot nixman dog gmail dot com). All
 // rights reserved.
 //
 // This file is part of NANOLOG(https://github.com/niXman/nanolog) project.
@@ -74,16 +74,6 @@
 #    error "bad NNL_DATE_FORMAT"
 #  endif
 #endif // NNL_USE_DATETIME
-
-#ifdef NNL_THREAD_SAFE
-#  if NNL_THREAD_SAFE == 0 // pthread mutex
-#    include <pthread.h>
-#  elif NNL_THREAD_SAFE == 1 // std::mutex
-#    include <mutex>
-#  else
-#    error bad "NNL_THREAD_SAFE" value == NNL_THREAD_SAFE
-#  endif // NNL_THREAD_SAFE
-#endif // NNL_THREAD_SAFE
 
 /***************************************************************************/
 
@@ -242,65 +232,6 @@
 /***************************************************************************/
 
 namespace NNL {
-
-/***************************************************************************/
-
-#ifdef NNL_THREAD_SAFE
-#  if NNL_THREAD_SAFE == 0 // pthread
-
-struct mutex {
-    mutex() {
-        assert(0 == ::pthread_mutex_init(&m, 0));
-    }
-    ~mutex() {
-        unlock();
-        assert(0 == ::pthread_mutex_destroy(&m));
-    }
-
-    void lock() { assert(0 == ::pthread_mutex_lock(&m)); }
-    void unlock() { assert(0 == ::pthread_mutex_unlock(&m)); }
-
-private:
-    ::pthread_mutex_t m;
-};
-
-#  else // NNL_THREAD_SAFE == 1 // std::mutex
-
-struct mutex {
-    mutex()
-        :m()
-    {}
-    ~mutex() {
-        unlock();
-    }
-
-    void lock() { m.lock(); }
-    void unlock() { m.unlock(); }
-
-private:
-    ::std::mutex m;
-};
-
-#  endif // NNL_THREAD_SAFE == 0
-
-struct lock_guard {
-    lock_guard(::NNL::mutex &m)
-        :m_m(m)
-    { m_m.lock(); }
-    ~lock_guard()
-    { m_m.unlock(); }
-
-private:
-    ::NNL::mutex &m_m;
-};
-
-#  define __NNL_MUTEX_TYPE(m) ::NNL::mutex m;
-#  define __NNL_LOCKGUARD_TYPE(l, m) ::NNL::lock_guard l(m);
-
-#else
-#  define __NNL_MUTEX_TYPE(m)
-#  define __NNL_LOCKGUARD_TYPE(l, m)
-#endif // NNL_THREAD_SAFE
 
 /***************************************************************************/
 
@@ -569,9 +500,6 @@ __NNL_DECLARE_WRITE(9)
 
 #define __NNL_LOG(os, lvl, fmt, ...) \
   do { \
-    __NNL_MUTEX_TYPE(mut) \
-    __NNL_LOCKGUARD_TYPE(lock, mut) \
-    \
     __NNL_IF( \
        __NNL_TUPLE_IS_EMPTY(__VA_ARGS__) \
       ,__NNL_WITHOUT_ARGS \
