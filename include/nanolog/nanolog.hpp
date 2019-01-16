@@ -1,5 +1,5 @@
 
-// Copyright (c) 2015-2018 niXman (i dot nixman dog gmail dot com). All
+// Copyright (c) 2015-2019 niXman (i dot nixman dog gmail dot com). All
 // rights reserved.
 //
 // This file is part of NANOLOG(https://github.com/niXman/nanolog) project.
@@ -56,6 +56,18 @@
 #else
 #  error please define one of NNL_USE_PRINTF or NNL_USE_BOOST_FORMAT
 #endif // NNL_USE_PRINTF
+
+#if !defined(NNL_SHORT_FILEPATH)
+#  define __NNL_FILEPATH(file) file
+#else
+#  include <cstring>
+#  ifdef _WIN32
+#     define __NNL_FILEPATH_SEP '\\'
+#  else
+#     define __NNL_FILEPATH_SEP '/'
+#  endif // _WIN32
+#  define __NNL_FILEPATH(file) (std::strrchr(file, __NNL_FILEPATH_SEP)+1)
+#endif // NNL_SHORT_FILEPATH
 
 #ifdef NNL_USE_DATETIME
 #  include <ctime>
@@ -186,12 +198,12 @@
    dtbuf[26] = 0;
 #  if defined(NNL_USE_PRINTF)
 #    define  __NNL_MAKE_FMT_STRING() \
-       "%s(%-5zu)[%c, %-26s]: "
+       "%s(%-4d)[%c][%-26s]: "
 #    define  __NNL_MAKE_ARGS_STRING(file, line, lvl) \
-       file, line, __NNL_FMT_ERROR_LVL(lvl), datetime_str(dtbuf)
+       __NNL_FILEPATH(file), line, __NNL_FMT_ERROR_LVL(lvl), datetime_str(dtbuf)
 #  else // !NNL_USE_PRINTF
 #    define  __NNL_MAKE_FMT_STRING() \
-       ::boost::format("%s(%-5d)[%c, %-26s]: ") % file % line \
+       ::boost::format("%s(%-4d)[%c][%-26s]: ") % __NNL_FILEPATH(file) % line \
          % __NNL_FMT_ERROR_LVL(lvl) % datetime_str(dtbuf)
 #    define  __NNL_MAKE_ARGS_STRING(file, line, lvl)
 #  endif // NNL_USE_PRINTF
@@ -199,12 +211,12 @@
 #  define  __NNL_MAKE_DATETIME_BUF()
 #  if defined(NNL_USE_PRINTF)
 #    define  __NNL_MAKE_FMT_STRING() \
-       "%s(%-5zu)[%c]: "
+       "%s(%-4d)[%c]: "
 #    define  __NNL_MAKE_ARGS_STRING(file, line, lvl) \
-       file, line, __NNL_FMT_ERROR_LVL(lvl)
+       __NNL_FILEPATH(file), line, __NNL_FMT_ERROR_LVL(lvl)
 #  else // !NNL_USE_PRINTF
 #    define  __NNL_MAKE_FMT_STRING() \
-       ::boost::format("%s(%-5d)[%c]: ") % file % line % __NNL_FMT_ERROR_LVL(lvl)
+       ::boost::format("%s(%-4d)[%c]: ") % __NNL_FILEPATH(file) % line % __NNL_FMT_ERROR_LVL(lvl)
 #    define  __NNL_MAKE_ARGS_STRING(file, line, lvl)
 #  endif // NNL_USE_PRINTF
 #endif // NNL_USE_DATETIME
@@ -223,8 +235,13 @@
 
 #define __NNL_DECLARE_WRITE(n) \
     template<__NNL_ENUM(typename Arg, n)> \
-    void write(__NNL_STREAM_TYPE os, const char *file, std::size_t line, elevel lvl \
-               , const char *fmt,__NNL_ENUM_PAIR(const Arg, &, arg, n)) \
+    void write( \
+         __NNL_STREAM_TYPE os \
+        ,const char *file \
+        ,int line \
+        ,elevel lvl \
+        ,const char *fmt \
+        ,__NNL_ENUM_PAIR(const Arg, &, arg, n)) \
     { \
         __NNL_MAKE_WRITE_BODY(n) \
     }
@@ -262,25 +279,26 @@ inline const char* datetime_str(char *buf) {
 
       char *p = ptr+len-1;
       switch ( len ) {
-        case 19: *p-- = '0' + (v % 10); v /= 10;
-        case 18: *p-- = '0' + (v % 10); v /= 10;
-        case 17: *p-- = '0' + (v % 10); v /= 10;
-        case 16: *p-- = '0' + (v % 10); v /= 10;
-        case 15: *p-- = '0' + (v % 10); v /= 10;
-        case 14: *p-- = '0' + (v % 10); v /= 10;
-        case 13: *p-- = '0' + (v % 10); v /= 10;
-        case 12: *p-- = '0' + (v % 10); v /= 10;
-        case 11: *p-- = '0' + (v % 10); v /= 10;
-        case 10: *p-- = '0' + (v % 10); v /= 10;
-        case 9 : *p-- = '0' + (v % 10); v /= 10;
-        case 8 : *p-- = '0' + (v % 10); v /= 10;
-        case 7 : *p-- = '0' + (v % 10); v /= 10;
-        case 6 : *p-- = '0' + (v % 10); v /= 10;
-        case 5 : *p-- = '0' + (v % 10); v /= 10;
-        case 4 : *p-- = '0' + (v % 10); v /= 10;
-        case 3 : *p-- = '0' + (v % 10); v /= 10;
-        case 2 : *p-- = '0' + (v % 10); v /= 10;
-        case 1 : *p-- = '0' + (v % 10); v /= 10;
+        case 20: *p-- = static_cast<char>('0'+(v % 10)); v /= 10; // fallthrough
+        case 19: *p-- = static_cast<char>('0'+(v % 10)); v /= 10; // fallthrough
+        case 18: *p-- = static_cast<char>('0'+(v % 10)); v /= 10; // fallthrough
+        case 17: *p-- = static_cast<char>('0'+(v % 10)); v /= 10; // fallthrough
+        case 16: *p-- = static_cast<char>('0'+(v % 10)); v /= 10; // fallthrough
+        case 15: *p-- = static_cast<char>('0'+(v % 10)); v /= 10; // fallthrough
+        case 14: *p-- = static_cast<char>('0'+(v % 10)); v /= 10; // fallthrough
+        case 13: *p-- = static_cast<char>('0'+(v % 10)); v /= 10; // fallthrough
+        case 12: *p-- = static_cast<char>('0'+(v % 10)); v /= 10; // fallthrough
+        case 11: *p-- = static_cast<char>('0'+(v % 10)); v /= 10; // fallthrough
+        case 10: *p-- = static_cast<char>('0'+(v % 10)); v /= 10; // fallthrough
+        case 9 : *p-- = static_cast<char>('0'+(v % 10)); v /= 10; // fallthrough
+        case 8 : *p-- = static_cast<char>('0'+(v % 10)); v /= 10; // fallthrough
+        case 7 : *p-- = static_cast<char>('0'+(v % 10)); v /= 10; // fallthrough
+        case 6 : *p-- = static_cast<char>('0'+(v % 10)); v /= 10; // fallthrough
+        case 5 : *p-- = static_cast<char>('0'+(v % 10)); v /= 10; // fallthrough
+        case 4 : *p-- = static_cast<char>('0'+(v % 10)); v /= 10; // fallthrough
+        case 3 : *p-- = static_cast<char>('0'+(v % 10)); v /= 10; // fallthrough
+        case 2 : *p-- = static_cast<char>('0'+(v % 10)); v /= 10; // fallthrough
+        case 1 : *p-- = static_cast<char>('0'+(v % 10)); v /= 10; // fallthrough
       }
       return len;
     }
@@ -432,8 +450,12 @@ enum elevel {
   ,error
 };
 
-inline void write(__NNL_STREAM_TYPE os, const char *file
-    ,std::size_t line, elevel lvl, const char *fmt)
+inline void write(
+     __NNL_STREAM_TYPE os
+    ,const char *file
+    ,int line
+    ,elevel lvl
+    ,const char *fmt)
 {
     __NNL_MAKE_DATETIME_BUF()
 #if defined(NNL_USE_PRINTF)
