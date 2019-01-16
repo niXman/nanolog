@@ -189,8 +189,7 @@
 
 /***************************************************************************/
 
-#define __NNL_FMT_ERROR_LVL(lvl) \
-  (lvl==::NNL::info?'I':lvl==::NNL::debug?'D':lvl==::NNL::warning?'W':'E')
+#define __NNL_FMT_ERROR_LVL(lvl) ("IDWE"[lvl])
 
 #ifdef NNL_USE_DATETIME
 # define  __NNL_MAKE_DATETIME_BUF() \
