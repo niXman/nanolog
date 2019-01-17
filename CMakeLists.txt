@@ -7,6 +7,8 @@ add_definitions(
     -DNNL_USE_DATETIME
     #-DNNL_USE_BOOST_FORMAT
     -DNNL_SHORT_FILEPATH
+    #-DNNL_DISABLE_LOGGING
+    -DNNL_FLUSH_EACH_RECORD
 )
 
 include_directories(

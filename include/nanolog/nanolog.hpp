@@ -44,7 +44,9 @@
 #  define NNL_USE_PRINTF
 #endif
 
+#include <exception>
 #include <cassert>
+#include <cstdlib>
 
 #if defined(NNL_USE_PRINTF)
 #  include <cstdio>
@@ -502,32 +504,56 @@ enum elevel {
     __NNL_FLUSH_FUNC(os) \
   } while(0);
 
-# define __NNL_LOGI(os, fmt, ...) __NNL_LOG(os, ::NNL::info, fmt, __VA_ARGS__)
-# define __NNL_LOGD(os, fmt, ...) __NNL_LOG(os, ::NNL::debug, fmt, __VA_ARGS__)
-# define __NNL_LOGW(os, fmt, ...) __NNL_LOG(os, ::NNL::warning, fmt, __VA_ARGS__)
-# define __NNL_LOGE(os, fmt, ...) __NNL_LOG(os, ::NNL::error, fmt, __VA_ARGS__)
-
 /***************************************************************************/
 
-# define NNL_LOGI(os, fmt, ...) __NNL_LOGI(os, fmt, __VA_ARGS__)
-# define NNL_LOGD(os, fmt, ...) __NNL_LOGD(os, fmt, __VA_ARGS__)
-# define NNL_LOGW(os, fmt, ...) __NNL_LOGW(os, fmt, __VA_ARGS__)
-# define NNL_LOGE(os, fmt, ...) __NNL_LOGE(os, fmt, __VA_ARGS__)
+# define NNL_LOGI(os, fmt, ...) __NNL_LOG(os, ::NNL::info, fmt, __VA_ARGS__)
+# define NNL_LOGD(os, fmt, ...) __NNL_LOG(os, ::NNL::debug, fmt, __VA_ARGS__)
+# define NNL_LOGW(os, fmt, ...) __NNL_LOG(os, ::NNL::warning, fmt, __VA_ARGS__)
+# define NNL_LOGE(os, fmt, ...) __NNL_LOG(os, ::NNL::error, fmt, __VA_ARGS__)
 
-# define NNL_LOGI_IF(expr, os, fmt, ...) if (expr) __NNL_LOGI(os, fmt, __VA_ARGS__)
-# define NNL_LOGD_IF(expr, os, fmt, ...) if (expr) __NNL_LOGD(os, fmt, __VA_ARGS__)
-# define NNL_LOGW_IF(expr, os, fmt, ...) if (expr) __NNL_LOGW(os, fmt, __VA_ARGS__)
-# define NNL_LOGE_IF(expr, os, fmt, ...) if (expr) __NNL_LOGE(os, fmt, __VA_ARGS__)
+# define NNL_LOG_INFO(os, fmt, ...) NNL_LOGI(os, fmt, __VA_ARGS__)
+# define NNL_LOG_DEBUG(os, fmt, ...) NNL_LOGD(os, fmt, __VA_ARGS__)
+# define NNL_LOG_WARNING(os, fmt, ...) NNL_LOGW(os, fmt, __VA_ARGS__)
+# define NNL_LOG_ERROR(os, fmt, ...) NNL_LOGE(os, fmt, __VA_ARGS__)
 
-# define NNL_LOG_INFO(os, fmt, ...) __NNL_LOGI(os, fmt, __VA_ARGS__)
-# define NNL_LOG_DEBUG(os, fmt, ...) __NNL_LOGD(os, fmt, __VA_ARGS__)
-# define NNL_LOG_WARNING(os, fmt, ...) __NNL_LOGW(os, fmt, __VA_ARGS__)
-# define NNL_LOG_ERROR(os, fmt, ...) __NNL_LOGE(os, fmt, __VA_ARGS__)
+# define NNL_LOGI_IF(expr, os, fmt, ...) if (expr) NNL_LOGI(os, fmt, __VA_ARGS__)
+# define NNL_LOGD_IF(expr, os, fmt, ...) if (expr) NNL_LOGD(os, fmt, __VA_ARGS__)
+# define NNL_LOGW_IF(expr, os, fmt, ...) if (expr) NNL_LOGW(os, fmt, __VA_ARGS__)
+# define NNL_LOGE_IF(expr, os, fmt, ...) if (expr) NNL_LOGE(os, fmt, __VA_ARGS__)
 
-# define NNL_LOG_INFO_IF(expr, os, fmt, ...) if (expr) __NNL_LOGI(os, fmt, __VA_ARGS__)
-# define NNL_LOG_DEBUG_IF(expr, os, fmt, ...) if (expr) __NNL_LOGD(os, fmt, __VA_ARGS__)
-# define NNL_LOG_WARNING_IF(expr, os, fmt, ...) if (expr) __NNL_LOGW(os, fmt, __VA_ARGS__)
-# define NNL_LOG_ERROR_IF(expr, os, fmt, ...) if (expr) __NNL_LOGE(os, fmt, __VA_ARGS__)
+# define NNL_LOG_INFO_IF(expr, os, fmt, ...) if (expr) NNL_LOGI(os, fmt, __VA_ARGS__)
+# define NNL_LOG_DEBUG_IF(expr, os, fmt, ...) if (expr) NNL_LOGD(os, fmt, __VA_ARGS__)
+# define NNL_LOG_WARNING_IF(expr, os, fmt, ...) if (expr) NNL_LOGW(os, fmt, __VA_ARGS__)
+# define NNL_LOG_ERROR_IF(expr, os, fmt, ...) if (expr) NNL_LOGE(os, fmt, __VA_ARGS__)
+
+# define NNL_TRY_CATCH(os, ...) \
+    try { \
+      __VA_ARGS__; \
+    } catch (const std::exception &ex) { \
+      NNL_LOGE(os, "std::exception: %s\n", ex.what()); \
+    } catch (...) { \
+      NNL_LOGE(os, "unknown exception\n"); \
+    }
+# define NNL_TRY_CATCH_ABORT(os, ...) \
+    try { \
+      __VA_ARGS__; \
+    } catch (const std::exception &ex) { \
+      NNL_LOGE(os, "std::exception: %s\n", ex.what()); \
+      std::abort(); \
+    } catch (...) { \
+      NNL_LOGE(os, "unknown exception\n"); \
+      std::abort(); \
+    }
+# define NNL_TRY_CATCH_RETHROW(os, ...) \
+    try { \
+      __VA_ARGS__; \
+    } catch (const std::exception &ex) { \
+      NNL_LOGE(os, "std::exception: %s\n", ex.what()); \
+      throw; \
+    } catch (...) { \
+      NNL_LOGE(os, "unknown exception\n"); \
+      throw; \
+    }
 
 # define NNL_CREATE_LOG_STREAM(sname, path) __NNL_CREATE_LOG_STREAM(sname, path)
 # define NNL_CLOSE_LOG_STREAM(sname) __NNL_CLOSE_LOG_STREAM(sname)
@@ -537,26 +563,30 @@ enum elevel {
 # define NNL_LOGW(os, fmt, ...)
 # define NNL_LOGE(os, fmt, ...)
 
-# define NNL_LOGI_IF(expr, os, fmt, ...)
-# define NNL_LOGD_IF(expr, os, fmt, ...)
-# define NNL_LOGW_IF(expr, os, fmt, ...)
-# define NNL_LOGE_IF(expr, os, fmt, ...)
-
 # define NNL_LOG_INFO(os, fmt, ...)
 # define NNL_LOG_DEBUG(os, fmt, ...)
 # define NNL_LOG_WARNING(os, fmt, ...)
 # define NNL_LOG_ERROR(os, fmt, ...)
+
+# define NNL_LOGI_IF(expr, os, fmt, ...)
+# define NNL_LOGD_IF(expr, os, fmt, ...)
+# define NNL_LOGW_IF(expr, os, fmt, ...)
+# define NNL_LOGE_IF(expr, os, fmt, ...)
 
 # define NNL_LOG_INFO_IF(expr, os, fmt, ...)
 # define NNL_LOG_DEBUG_IF(expr, os, fmt, ...)
 # define NNL_LOG_WARNING_IF(expr, os, fmt, ...)
 # define NNL_LOG_ERROR_IF(expr, os, fmt, ...)
 
+# define NNL_TRY_CATCH(os, ...) { __VA_ARGS__; }
+# define NNL_TRY_CATCH_ABORT(os, ...) { __VA_ARGS__; }
+# define NNL_TRY_CATCH_RETHROW(os, ...) { __VA_ARGS__; }
+
 # define NNL_CREATE_LOG_STREAM(sname, path)
 # define NNL_CLOSE_LOG_STREAM(sname)
 
-/***************************************************************************/
-
 #endif // NNL_DISABLE_LOGGING
+
+/***************************************************************************/
 
 #endif // __NANOLOG__NANOLOG_HPP__INCLUDED

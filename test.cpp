@@ -102,6 +102,10 @@ int main() {
   NNL_LOGE_IF(1, NNL_TEST_STREAM, "message with two args %s-%s\n", "arg0", "arg1")
   NNL_LOGE_IF(1, NNL_TEST_STREAM, "message with three args %s-%s-%d\n", "arg0", "arg1", 33)
 
+//  NNL_TRY_CATCH(NNL_TEST_STREAM, throw 1;) // will be catched and logged
+//  NNL_TRY_CATCH_RETHROW(NNL_TEST_STREAM, throw 1;) // will be logged and rethrow`ed
+//  NNL_TRY_CATCH_ABORT(NNL_TEST_STREAM, throw 1;) // will be logged and abort`ed
+
   NNL_CREATE_LOG_STREAM(log0, "log0.txt")
   NNL_LOGE(log0, "message with three args %s-%s-%d\n", "arg0", "arg1", 66)
   NNL_CLOSE_LOG_STREAM(log0)
