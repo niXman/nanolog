@@ -51,6 +51,10 @@
 #  define __NNL_STREAM_TYPE ::std::FILE*
 #elif defined(NNL_USE_BOOST_FORMAT)
 #  include <boost/format.hpp>
+#  include <boost/version.hpp>
+#    if BOOST_VERSION >= 106000
+#      define __NNL_CAN_USE_BOOST_VMD
+#    endif // BOOST_VERSION >= 106000
 #  include <fstream>
 #  define __NNL_STREAM_TYPE ::std::ostream&
 #else
@@ -89,13 +93,16 @@
 
 /***************************************************************************/
 
+#ifdef __NNL_CAN_USE_BOOST_VMD
+#  include <boost/vmd/is_empty.hpp>
+#  define __NNL_TUPLE_IS_EMPTY(...) BOOST_VMD_IS_EMPTY(__VA_ARGS__)
+#else // !__NNL_CAN_USE_BOOST_VMD
 #define __NNL_ARG16(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, ...) _15
 #define __NNL_HAS_COMMA(...) __NNL_ARG16(__VA_ARGS__, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
 #define __NNL__TRIGGER_PARENTHESIS_(...) ,
 #define __NNL_PASTE5(_0, _1, _2, _3, _4) _0 ## _1 ## _2 ## _3 ## _4
 #define __NNL__IS_EMPTY_CASE_0001 ,
 #define __NNL__IS_EMPTY(_0, _1, _2, _3) __NNL_HAS_COMMA(__NNL_PASTE5(__NNL__IS_EMPTY_CASE_, _0, _1, _2, _3))
-
 #define __NNL_TUPLE_IS_EMPTY(...) \
   __NNL__IS_EMPTY( \
     __NNL_HAS_COMMA(__VA_ARGS__), \
@@ -103,6 +110,7 @@
     __NNL_HAS_COMMA(__VA_ARGS__ (/*empty*/)), \
     __NNL_HAS_COMMA(__NNL__TRIGGER_PARENTHESIS_ __VA_ARGS__ (/*empty*/)) \
   )
+#endif // __NNL_CAN_USE_BOOST_VMD
 
 /***************************************************************************/
 
