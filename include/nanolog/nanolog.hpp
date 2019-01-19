@@ -46,6 +46,7 @@
 
 #include <exception>
 #include <cassert>
+#include <cstdint>
 #include <cstdlib>
 
 #if defined(NNL_USE_PRINTF)
@@ -205,8 +206,7 @@
 #  define  __NNL_MAKE_FMT_STRING() \
      "%s(%-4d)[%c][%-23s]: "
 #  define  __NNL_MAKE_DATETIME_BUF() \
-     char dtbuf[24]; \
-     dtbuf[23] = 0;
+     char dtbuf[24];
 #  if defined(NNL_USE_PRINTF)
 #    define  __NNL_MAKE_FMT_STRING_ARGS(file, line, lvl) \
        __NNL_FILEPATH(file), line, \
@@ -235,31 +235,31 @@ namespace NNL {
 
 #ifdef NNL_USE_DATETIME
 
+#ifdef NNL_CONSIDER_TIMEZONE
 static struct __init {
   __init() {
-    std::time_t t = time(0);
-    std::tm *lt = localtime(&t);
+    std::time_t t = std::time(0);
+    std::tm *lt = std::localtime(&t);
     (void)lt;
   }
 } __g_init;
+#endif // NNL_CONSIDER_TIMEZONE
 
 inline const char* datetime_str(char *buf) {
   struct ops {
-    static long long abs(long long v) { return v < 0 ? -v : v; }
+    static std::size_t num_chars(std::size_t v) {
+      std::size_t n = 1;
+      v = (v >= 100000000000000000ull) ? ((n += 17),v / 100000000000000000ull) : v;
+      v = (v >= 100000000ull) ? ((n += 8),v / 100000000ull) : v;
+      v = (v >= 10000ull) ? ((n += 4),v / 10000ull) : v;
+      v = (v >= 100ull) ? ((n += 2),v / 100ull) : v;
+      n = (v >= 10ull) ? n + 1 : n;
 
-    static std::size_t itoa(char *ptr, long long v) {
-      if ( v < 0 ) { *ptr++ = '-'; }
-      long long t = v = abs(v);
-
-      std::size_t len = 1;
-      if ( t >= 10000000000000000ll ) { len += 16; t /= 10000000000000000ll; }
-      if ( t >= 100000000 ) { len += 8; t /= 100000000; }
-      if ( t >= 10000 ) { len += 4; t /= 10000; }
-      if ( t >= 100 ) { len += 2; t /= 100; }
-      if ( t >= 10 ) { len += 1; }
-
-      char *p = ptr+len-1;
-      switch ( len ) {
+      return n;
+    }
+    static void utoa(char *ptr, std::size_t n, std::size_t v) {
+      char *p = ptr + n - 1;
+      switch ( n ) {
         case 20: *p-- = static_cast<char>('0'+(v % 10)); v /= 10; // fallthrough
         case 19: *p-- = static_cast<char>('0'+(v % 10)); v /= 10; // fallthrough
         case 18: *p-- = static_cast<char>('0'+(v % 10)); v /= 10; // fallthrough
@@ -280,138 +280,114 @@ inline const char* datetime_str(char *buf) {
         case 3 : *p-- = static_cast<char>('0'+(v % 10)); v /= 10; // fallthrough
         case 2 : *p-- = static_cast<char>('0'+(v % 10)); v /= 10; // fallthrough
         case 1 : *p-- = static_cast<char>('0'+(v % 10)); v /= 10; // fallthrough
+        default: break;
       }
-      return len;
     }
 
-    static std::tm* time_t_to_tm(const std::time_t t, std::tm *r) {
-      static const short spm[13] = {
-         0
-        ,(31)
-        ,(31+28)
-        ,(31+28+31)
-        ,(31+28+31+30)
-        ,(31+28+31+30+31)
-        ,(31+28+31+30+31+30)
-        ,(31+28+31+30+31+30+31)
-        ,(31+28+31+30+31+30+31+31)
-        ,(31+28+31+30+31+30+31+31+30)
-        ,(31+28+31+30+31+30+31+31+30+31)
-        ,(31+28+31+30+31+30+31+31+30+31+30)
-        ,(31+28+31+30+31+30+31+31+30+31+30+31)
-      };
-      static const int SPD = 24*60*60; // seconds per day
-      time_t i = 1970, work = t % SPD;
-      r->tm_sec = work % 60;
-      work /= 60;
-      r->tm_min = work % 60;
-      r->tm_hour = work / 60;
-      work = t / SPD;
-      r->tm_wday = (4+work) % 7;
-      for ( ; ; ++i ) {
-        const time_t k = (!(i % 4) && ((i % 100) || !(i % 400))) ? 366 : 365;
-        if ( work >= k )
-          work -= k;
-        else
-          break;
-      }
-      r->tm_year = i-1900;
-      r->tm_yday = work;
+#define __NNL_YEAR(p, v) \
+    *p++ = (v / 1000) % 10 + '0'; \
+    *p++ = (v / 100) % 10 + '0'; \
+    *p++ = (v / 10) % 10 + '0'; \
+    *p++ = (v) % 10 + '0';
 
-      r->tm_mday = 1;
-      if ( (!(i % 4) && ((i % 100) || !(i % 400))) && (work > 58) ) {
-        if ( work == 59 )
-          r->tm_mday = 2;
-        work -= 1;
-      }
+#define __NNL_MONTH(p, v) \
+    *p++ = ((v + 1) / 10) % 10 + '0'; \
+    *p++ = ((v + 1)) % 10 + '0';
 
-      for (i = 11; i && (spm[i] > work); --i )
-        ;
+#define __NNL_DAY(p, v) \
+    *p++ = (v / 10) % 10 + '0'; \
+    *p++ = (v % 10) + '0';
 
-      r->tm_mon = i;
-      r->tm_mday += work - spm[i];
-
-      return r;
-    }
+#define __NNL_HMS(p, v) \
+    *p++ = (v / 10) % 10 + '0'; \
+    *p++ = v % 10 + '0';
 
     static std::size_t datetime_str(char *ptr) {
-      char *p = ptr;
       struct timespec ts;
-      clock_gettime(CLOCK_REALTIME, &ts);
-      std::tm tm;
-      time_t_to_tm(ts.tv_sec, &tm);
-      tm.tm_hour += abs(timezone/(60*60));
+      ::clock_gettime(CLOCK_REALTIME, &ts);
+      std::size_t ss = ts.tv_sec;
+      std::size_t ms = ts.tv_nsec/1000000ull;
 
-#define __NNL_YEAR(p, tm) \
-      *p++ = ((tm.tm_year+1900)/1000)%10+'0'; \
-      *p++ = ((tm.tm_year+1900)/100)%10+'0'; \
-      *p++ = ((tm.tm_year+1900)/10)%10+'0'; \
-      *p++ = (tm.tm_year+1900)%10+'0';
-#define __NNL_MONTH(p, tm) \
-      *p++ = ((tm.tm_mon+1)/10)%10+'0'; \
-      *p++ = (tm.tm_mon+1)%10+'0';
-#define __NNL_DAY(p, tm) \
-      *p++ = (tm.tm_mday/10)%10+'0'; \
-      *p++ = tm.tm_mday%10+'0';
+      static const std::size_t SPD = 24 * 60 * 60;
+      static const std::uint16_t spm[13] = {
+         0
+        ,(31)
+        ,(31 + 28)
+        ,(31 + 28 + 31)
+        ,(31 + 28 + 31 + 30)
+        ,(31 + 28 + 31 + 30 + 31)
+        ,(31 + 28 + 31 + 30 + 31 + 30)
+        ,(31 + 28 + 31 + 30 + 31 + 30 + 31)
+        ,(31 + 28 + 31 + 30 + 31 + 30 + 31 + 31)
+        ,(31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30)
+        ,(31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31)
+        ,(31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31 + 30)
+        ,(31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31 + 30 + 31)
+      };
+      static const auto is_leap_year = [](std::size_t t) {
+          return (!(t % 4) && ((t % 100) || !(t % 400)));
+      };
 
-#if NNL_DATE_FORMAT == NNL_DATE_FORMAT_DMY // day.month.year
-      // day
-      __NNL_DAY(p, tm)
-      /* sep */
-      *p++ = '.';
-      // month
-      __NNL_MONTH(p, tm)
-      /* sep */
-      *p++ = '.';
-      // year
-      __NNL_YEAR(p, tm)
-#elif NNL_DATE_FORMAT == NNL_DATE_FORMAT_YMD // year.month.day
-      // year
-      __NNL_YEAR(p, tm)
-      /* sep */
-      *p++ = '.';
-      // month
-      __NNL_MONTH(p, tm)
-      /* sep */
-      *p++ = '.';
-      // day
-      __NNL_DAY(p, tm)
-#else                                       // month.day.year
-      // month
-      __NNL_MONTH(p, tm)
-      /* sep */
-      *p++ = '.';
-      // day
-      __NNL_DAY(p, tm)
-      /* sep */
-      *p++ = '.';
-      // year
-      __NNL_YEAR(p, tm)
-#endif // NNL_DATE_FORMAT
+      std::size_t secs{}, mins{}, hours{}, years{}, mons{}, days{};
+      std::size_t work = ss % SPD;
 
-#undef __NNL_YEAR
-#undef __NNL_MONTH
-#undef __NNL_DAY
+      secs = work % 60;
+      work /= 60;
+      mins = work % 60;
+      hours = work / 60;
+      work = ss / SPD;
 
-      /* sep */
+      std::size_t i = 1970;
+      for ( ; ; ++i ) {
+          std::size_t k = is_leap_year(i) ? 366 : 365;
+          if ( work >= k ) {
+              work -= k;
+          } else {
+              break;
+          }
+      }
+      years = i;
+
+      days = 1;
+      if ( is_leap_year(i) && (work > 58) ) {
+          if (work == 59) {
+              days = 2;
+          }
+          work -= 1;
+      }
+
+      for ( i = 11; i && (spm[i] > work); --i )
+          ;
+      mons = i;
+      days += work - spm[i];
+
+      char *p = ptr;
+
+      __NNL_YEAR(p, years);
+      *p++ = '.';
+      __NNL_MONTH(p, mons);
+      *p++ = '.';
+      __NNL_DAY(p, days);
+
       *p++ = '-';
-      // hours
-      *p++ = (tm.tm_hour/10)%10+'0';
-      *p++ = tm.tm_hour%10+'0';
-      /* sep */
+
+      // timezone - is extern, declared in time.h
+      hours += std::abs(timezone/(60*60));
+      __NNL_HMS(p, hours);
       *p++ = ':';
-      // minutes
-      *p++ = (tm.tm_min/10)%10+'0';
-      *p++ = tm.tm_min%10+'0';
-      /* sep */
+      __NNL_HMS(p, mins);
       *p++ = ':';
-      // seconds
-      *p++ = (tm.tm_sec/10)%10+'0';
-      *p++ = tm.tm_sec%10+'0';
-      /* sep */
-      // microseconds
-      *p++ = '.';
-      p += itoa(p, ts.tv_nsec/1000000);
+      __NNL_HMS(p, secs);
+
+      // milliseconds
+      if ( ms ) {
+        *p++ = '.';
+        std::size_t n = num_chars(ms);
+        std::memset(p, '0', n);
+        p += 3 - n;
+        utoa(p, n, ms);
+        p += n;
+      }
 
       return p-ptr;
     }
@@ -421,6 +397,11 @@ inline const char* datetime_str(char *buf) {
 
   return buf;
 }
+
+#undef __NNL_YEAR
+#undef __NNL_MONTH
+#undef __NNL_DAY
+#undef __NNL_HMS
 
 #endif // NNL_USE_DATETIME
 
