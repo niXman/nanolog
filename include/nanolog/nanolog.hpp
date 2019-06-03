@@ -40,14 +40,15 @@
 
 /***************************************************************************/
 
-#if !defined(NNL_USE_PRINTF) && !defined(NNL_USE_BOOST_FORMAT)
-#  define NNL_USE_PRINTF
-#endif
-
 #include <exception>
 #include <cassert>
 #include <cstdint>
+#include <cstring>
 #include <cstdlib>
+
+#if !defined(NNL_USE_PRINTF) && !defined(NNL_USE_BOOST_FORMAT)
+#  define NNL_USE_PRINTF
+#endif
 
 #if defined(NNL_USE_PRINTF)
 #  include <cstdio>
@@ -100,19 +101,19 @@
 #  include <boost/vmd/is_empty.hpp>
 #  define __NNL_TUPLE_IS_EMPTY(...) BOOST_VMD_IS_EMPTY(__VA_ARGS__)
 #else // !__NNL_CAN_USE_BOOST_VMD
-#define __NNL_ARG16(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, ...) _15
-#define __NNL_HAS_COMMA(...) __NNL_ARG16(__VA_ARGS__, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
-#define __NNL__TRIGGER_PARENTHESIS_(...) ,
-#define __NNL_PASTE5(_0, _1, _2, _3, _4) _0 ## _1 ## _2 ## _3 ## _4
-#define __NNL__IS_EMPTY_CASE_0001 ,
-#define __NNL__IS_EMPTY(_0, _1, _2, _3) __NNL_HAS_COMMA(__NNL_PASTE5(__NNL__IS_EMPTY_CASE_, _0, _1, _2, _3))
-#define __NNL_TUPLE_IS_EMPTY(...) \
-  __NNL__IS_EMPTY( \
-    __NNL_HAS_COMMA(__VA_ARGS__), \
-    __NNL_HAS_COMMA(__NNL__TRIGGER_PARENTHESIS_ __VA_ARGS__), \
-    __NNL_HAS_COMMA(__VA_ARGS__ (/*empty*/)), \
-    __NNL_HAS_COMMA(__NNL__TRIGGER_PARENTHESIS_ __VA_ARGS__ (/*empty*/)) \
-  )
+#  define __NNL_ARG16(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, ...) _15
+#  define __NNL_HAS_COMMA(...) __NNL_ARG16(__VA_ARGS__, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
+#  define __NNL__TRIGGER_PARENTHESIS_(...) ,
+#  define __NNL_PASTE5(_0, _1, _2, _3, _4) _0 ## _1 ## _2 ## _3 ## _4
+#  define __NNL__IS_EMPTY_CASE_0001 ,
+#  define __NNL__IS_EMPTY(_0, _1, _2, _3) __NNL_HAS_COMMA(__NNL_PASTE5(__NNL__IS_EMPTY_CASE_, _0, _1, _2, _3))
+#  define __NNL_TUPLE_IS_EMPTY(...) \
+     __NNL__IS_EMPTY( \
+     __NNL_HAS_COMMA(__VA_ARGS__), \
+     __NNL_HAS_COMMA(__NNL__TRIGGER_PARENTHESIS_ __VA_ARGS__), \
+     __NNL_HAS_COMMA(__VA_ARGS__ (/*empty*/)), \
+     __NNL_HAS_COMMA(__NNL__TRIGGER_PARENTHESIS_ __VA_ARGS__ (/*empty*/)) \
+   )
 #endif // __NNL_CAN_USE_BOOST_VMD
 
 /***************************************************************************/
@@ -206,15 +207,16 @@
 #  define  __NNL_MAKE_FMT_STRING() \
      "%s(%-4d)[%c][%-23s]: "
 #  define  __NNL_MAKE_DATETIME_BUF() \
-     char dtbuf[24];
+     char dtbuf[24]; \
+     ::NNL::datetime_str(dtbuf);
 #  if defined(NNL_USE_PRINTF)
 #    define  __NNL_MAKE_FMT_STRING_ARGS(file, line, lvl) \
        __NNL_FILEPATH(file), line, \
-         __NNL_FMT_ERROR_LVL(lvl), ::NNL::datetime_str(dtbuf)
+         __NNL_FMT_ERROR_LVL(lvl), dtbuf
 #  else // !NNL_USE_PRINTF
 #    define  __NNL_MAKE_FMT_STRING_ARGS(file, line, lvl) \
        % __NNL_FILEPATH(file) % line \
-         % __NNL_FMT_ERROR_LVL(lvl) % ::NNL::datetime_str(dtbuf)
+         % __NNL_FMT_ERROR_LVL(lvl) % dtbuf
 #  endif // NNL_USE_PRINTF
 #else // !NNL_USE_DATETIME
 #  define  __NNL_MAKE_FMT_STRING() \
@@ -245,7 +247,7 @@ static struct __init {
 } __g_init;
 #endif // NNL_CONSIDER_TIMEZONE
 
-inline const char* datetime_str(char *buf) {
+inline std::size_t datetime_str(char *buf) {
   struct ops {
     static std::size_t num_chars(std::size_t v) {
       std::size_t n = 1;
@@ -393,9 +395,7 @@ inline const char* datetime_str(char *buf) {
     }
   };
 
-  ops::datetime_str(buf);
-
-  return buf;
+  return ops::datetime_str(buf);
 }
 
 #undef __NNL_YEAR
