@@ -1,2 +1,2 @@
 # nanolog
-Nano logging library
+C++20 Nano logging library
