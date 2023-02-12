@@ -1,5 +1,5 @@
 # NanoLog
-C++20 Nano logging library
+C++20 Nano logging library which uses `std::format`
 
 # NanoLog is not the fastest nor the most convenient
 
