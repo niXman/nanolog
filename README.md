@@ -26,11 +26,11 @@ C++20 Nano logging library
     std::string str;
     NNL_TRY_CATCH(std::cout, str = "some string";);
 
-    // try-catch-rethrow with logging
+    // try-catch-rethrow wrapper with logging
     std::string str2;
     NNL_TRY_CATCH_RETHROW(std::cout, str2 = "another string";);
 
-    // try-catch-abort with logging
+    // try-catch-abort wrapper with logging
     std::string str3;
     NNL_TRY_CATCH_ABORT(std::cout, str3 = "different string";);
 
