@@ -58,5 +58,9 @@ C++20 Nano logging library which uses `std::format`
  - `NNL_DONT_SHOW_DATETIME` - omit date-time in messages.
  - `NNL_CONSIDER_TIMEZONE` - take into account the time-zone instead of using UTC+0.
  - `NNL_SHORT_FILEPATH` - show file-name only instead of full file-path.
- - `NNL_DISABLE_LOGGING` - disable any logging functionality without any code changes.
  - `NNL_FLUSH_EACH_RECORD` - forcibly flush each message to used IO-stream.
+ - `NNL_DISABLE_LOG_INFO` - disable any `INFO`-level logging without any code changes.
+ - `NNL_DISABLE_LOG_DEBUG` - disable any `DEBUG`-level logging without any code changes.
+ - `NNL_DISABLE_LOG_WARNING` - disable any `WARNING`-level logging without any code changes.
+ - `NNL_DISABLE_LOG_ERROR` - disable any `ERROR`-level logging without any code changes.
+ - `NNL_DISABLE_LOGGING` - disable any logging functionality without any code changes.

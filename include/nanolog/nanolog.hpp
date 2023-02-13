@@ -169,20 +169,16 @@
 
 /***************************************************************************/
 
-#define __NNL_FMT_ERROR_LVL(lvl) ("IDWE"[lvl])
+#define __NNL_FMT_ERROR_LVL(lvl) static_cast<char>(lvl)
 
 #if !defined(NNL_DONT_SHOW_DATETIME)
 #   define  __NNL_MAKE_FMT_STRING() \
         "{}({: >4s})[{:23s}][{:c}]: "
-#   define  __NNL_MAKE_DATETIME_BUF() \
-        char dtbuf[24]; \
-        dtbuf[::NNL::datetime_str(dtbuf)] = 0;
 #   define  __NNL_MAKE_FMT_STRING_ARGS(file, line, lvl) \
-        __NNL_FILEPATH(file), line, dtbuf, __NNL_FMT_ERROR_LVL(lvl)
+        __NNL_FILEPATH(file), line, ::NNL::datetime_str(), __NNL_FMT_ERROR_LVL(lvl)
 #else // !NNL_DONT_SHOW_DATETIME
 #   define  __NNL_MAKE_FMT_STRING() \
         "{}({: >4s})[{:c}]: "
-#   define  __NNL_MAKE_DATETIME_BUF()
 #   define  __NNL_MAKE_FMT_STRING_ARGS(file, line, lvl) \
         __NNL_FILEPATH(file), line, __NNL_FMT_ERROR_LVL(lvl)
 #endif // NNL_DONT_SHOW_DATETIME
@@ -242,7 +238,7 @@ static struct __init {
 } __g_init;
 #endif // NNL_CONSIDER_TIMEZONE
 
-inline std::size_t datetime_str(char *buf) {
+inline const char* datetime_str() {
     struct ops {
         static std::size_t num_chars(std::size_t v) {
             std::size_t n = 1;
@@ -401,16 +397,20 @@ inline std::size_t datetime_str(char *buf) {
         }
     };
 
-  return ops::datetime_str(buf);
+    thread_local char buf[24];
+    auto len = ops::datetime_str(buf);
+    buf[len] = 0;
+
+    return buf;
 }
 
 #endif // NNL_DONT_SHOW_DATETIME
 
 enum elevel {
-     info
-    ,debug
-    ,warning
-    ,error
+     info    = 'I'
+    ,debug   = 'D'
+    ,warning = 'W'
+    ,error   = 'E'
 };
 
 } // ns NNL
@@ -442,7 +442,6 @@ enum elevel {
 #endif
 
 #define __NNL_WITHOUT_ARGS(os, file, line, lvl, fmt, ...) \
-    __NNL_MAKE_DATETIME_BUF() \
     ::std::format_to( \
          __NNL_OSTREAM_ITERATOR(os) \
         ,__NNL_MAKE_FMT_STRING() "{}" \
@@ -451,7 +450,6 @@ enum elevel {
     );
 
 #define __NNL_WITH_ARGS(os, file, line, lvl, fmt, ...) \
-    __NNL_MAKE_DATETIME_BUF() \
     ::std::format_to( \
          __NNL_OSTREAM_ITERATOR(os) \
         ,__NNL_MAKE_FMT_STRING() fmt \
@@ -473,25 +471,50 @@ enum elevel {
 
 /***************************************************************************/
 
-#   define NNL_LOGI(os, fmt, ...) __NNL_LOG(os, ::NNL::info, fmt, __VA_ARGS__)
-#   define NNL_LOGD(os, fmt, ...) __NNL_LOG(os, ::NNL::debug, fmt, __VA_ARGS__)
-#   define NNL_LOGW(os, fmt, ...) __NNL_LOG(os, ::NNL::warning, fmt, __VA_ARGS__)
-#   define NNL_LOGE(os, fmt, ...) __NNL_LOG(os, ::NNL::error, fmt, __VA_ARGS__)
-
-#   define NNL_LOG_INFO(os, fmt, ...) NNL_LOGI(os, fmt, __VA_ARGS__)
-#   define NNL_LOG_DEBUG(os, fmt, ...) NNL_LOGD(os, fmt, __VA_ARGS__)
-#   define NNL_LOG_WARNING(os, fmt, ...) NNL_LOGW(os, fmt, __VA_ARGS__)
-#   define NNL_LOG_ERROR(os, fmt, ...) NNL_LOGE(os, fmt, __VA_ARGS__)
-
-#   define NNL_LOGI_IF(expr, os, fmt, ...) if (expr) NNL_LOGI(os, fmt, __VA_ARGS__)
-#   define NNL_LOGD_IF(expr, os, fmt, ...) if (expr) NNL_LOGD(os, fmt, __VA_ARGS__)
-#   define NNL_LOGW_IF(expr, os, fmt, ...) if (expr) NNL_LOGW(os, fmt, __VA_ARGS__)
-#   define NNL_LOGE_IF(expr, os, fmt, ...) if (expr) NNL_LOGE(os, fmt, __VA_ARGS__)
-
-#   define NNL_LOG_INFO_IF(expr, os, fmt, ...) if (expr) NNL_LOGI(os, fmt, __VA_ARGS__)
-#   define NNL_LOG_DEBUG_IF(expr, os, fmt, ...) if (expr) NNL_LOGD(os, fmt, __VA_ARGS__)
-#   define NNL_LOG_WARNING_IF(expr, os, fmt, ...) if (expr) NNL_LOGW(os, fmt, __VA_ARGS__)
-#   define NNL_LOG_ERROR_IF(expr, os, fmt, ...) if (expr) NNL_LOGE(os, fmt, __VA_ARGS__)
+#   if !defined(NNL_DISABLE_LOG_INFO)
+#       define NNL_LOGI(os, fmt, ...) __NNL_LOG(os, ::NNL::info, fmt, __VA_ARGS__)
+#       define NNL_LOG_INFO(os, fmt, ...) NNL_LOGI(os, fmt, __VA_ARGS__)
+#       define NNL_LOGI_IF(expr, os, fmt, ...) if (expr) NNL_LOGI(os, fmt, __VA_ARGS__)
+#       define NNL_LOG_INFO_IF(expr, os, fmt, ...) if (expr) NNL_LOGI(os, fmt, __VA_ARGS__)
+#   else // !NNL_DISABLE_LOG_INFO
+#       define NNL_LOGI(os, fmt, ...)
+#       define NNL_LOG_INFO(os, fmt, ...)
+#       define NNL_LOGI_IF(expr, os, fmt, ...)
+#       define NNL_LOG_INFO_IF(expr, os, fmt, ...)
+#   endif // NNL_DISABLE_LOG_INFO
+#   if !defined(NNL_DISABLE_LOG_DEBUG)
+#       define NNL_LOGD(os, fmt, ...) __NNL_LOG(os, ::NNL::debug, fmt, __VA_ARGS__)
+#       define NNL_LOG_DEBUG(os, fmt, ...) NNL_LOGD(os, fmt, __VA_ARGS__)
+#       define NNL_LOGD_IF(expr, os, fmt, ...) if (expr) NNL_LOGD(os, fmt, __VA_ARGS__)
+#       define NNL_LOG_DEBUG_IF(expr, os, fmt, ...) if (expr) NNL_LOGD(os, fmt, __VA_ARGS__)
+#   else // !NNL_DISABLE_LOG_DEBUG
+#       define NNL_LOGD(os, fmt, ...)
+#       define NNL_LOG_DEBUG(os, fmt, ...)
+#       define NNL_LOGD_IF(expr, os, fmt, ...)
+#       define NNL_LOG_DEBUG_IF(expr, os, fmt, ...)
+#   endif // NNL_DISABLE_LOG_DEBUG
+#   if !defined(NNL_DISABLE_LOG_WARNING)
+#       define NNL_LOGW(os, fmt, ...) __NNL_LOG(os, ::NNL::warning, fmt, __VA_ARGS__)
+#       define NNL_LOG_WARNING(os, fmt, ...) NNL_LOGW(os, fmt, __VA_ARGS__)
+#       define NNL_LOGW_IF(expr, os, fmt, ...) if (expr) NNL_LOGW(os, fmt, __VA_ARGS__)
+#       define NNL_LOG_WARNING_IF(expr, os, fmt, ...) if (expr) NNL_LOGW(os, fmt, __VA_ARGS__)
+#   else // !NNL_DISABLE_LOG_WARNING
+#       define NNL_LOGW(os, fmt, ...)
+#       define NNL_LOG_WARNING(os, fmt, ...)
+#       define NNL_LOGW_IF(expr, os, fmt, ...)
+#       define NNL_LOG_WARNING_IF(expr, os, fmt, ...)
+#   endif // NNL_DISABLE_LOG_WARNING
+#   if !defined(NNL_DISABLE_LOG_ERROR)
+#       define NNL_LOGE(os, fmt, ...) __NNL_LOG(os, ::NNL::error, fmt, __VA_ARGS__)
+#       define NNL_LOG_ERROR(os, fmt, ...) NNL_LOGE(os, fmt, __VA_ARGS__)
+#       define NNL_LOGE_IF(expr, os, fmt, ...) if (expr) NNL_LOGE(os, fmt, __VA_ARGS__)
+#       define NNL_LOG_ERROR_IF(expr, os, fmt, ...) if (expr) NNL_LOGE(os, fmt, __VA_ARGS__)
+#   else // !NNL_DISABLE_LOG_ERROR
+#       define NNL_LOGE(os, fmt, ...)
+#       define NNL_LOG_ERROR(os, fmt, ...)
+#       define NNL_LOGE_IF(expr, os, fmt, ...)
+#       define NNL_LOG_ERROR_IF(expr, os, fmt, ...)
+#   endif // NNL_DISABLE_LOG_ERROR
 
 #   define NNL_TRY_CATCH(os, ...) \
         try { \
@@ -551,7 +574,6 @@ enum elevel {
 
 #   define NNL_CREATE_LOG_STREAM(sname, path)
 #   define NNL_CLOSE_LOG_STREAM(sname)
-
 #endif // NNL_DISABLE_LOGGING
 
 /***************************************************************************/
