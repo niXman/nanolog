@@ -1,5 +1,5 @@
 
-// Copyright (c) 2015-2023 niXman (i dot nixman dog gmail dot com). All
+// Copyright (c) 2015-2024 niXman (i dot nixman dog gmail dot com). All
 // rights reserved.
 //
 // This file is part of NANOLOG(https://github.com/niXman/nanolog) project.
@@ -82,8 +82,8 @@
 
 /***************************************************************************/
 
-#define __NNL_ARG16(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, ...) _15
-#define __NNL_HAS_COMMA(...) __NNL_ARG16(__VA_ARGS__, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
+#define __NNL_ARG16(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, ...) _16
+#define __NNL_HAS_COMMA(...) __NNL_ARG16(__VA_ARGS__, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
 #define __NNL__TRIGGER_PARENTHESIS_(...) ,
 #define __NNL_PASTE5(_0, _1, _2, _3, _4) _0 ## _1 ## _2 ## _3 ## _4
 #define __NNL__IS_EMPTY_CASE_0001 ,
@@ -152,15 +152,17 @@
 #define __NNL_ENUM_ARGS_10(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10) \
     __NNL_ENUM_ARGS_9(_1, _2, _3, _4, _5, _6, _7, _8, _9) __NNL_ENUM_ARGS_1(_10)
 #define __NNL_ENUM_ARGS_11(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11) \
-    __NNL_ENUM_ARGS_9(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10) __NNL_ENUM_ARGS_1(_11)
+    __NNL_ENUM_ARGS_10(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10) __NNL_ENUM_ARGS_1(_11)
 #define __NNL_ENUM_ARGS_12(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12) \
-    __NNL_ENUM_ARGS_9(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11) __NNL_ENUM_ARGS_1(_12)
+    __NNL_ENUM_ARGS_11(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11) __NNL_ENUM_ARGS_1(_12)
 #define __NNL_ENUM_ARGS_13(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13) \
-    __NNL_ENUM_ARGS_9(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12) __NNL_ENUM_ARGS_1(_13)
+    __NNL_ENUM_ARGS_12(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12) __NNL_ENUM_ARGS_1(_13)
 #define __NNL_ENUM_ARGS_14(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14) \
-    __NNL_ENUM_ARGS_9(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13) __NNL_ENUM_ARGS_1(_14)
+    __NNL_ENUM_ARGS_13(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13) __NNL_ENUM_ARGS_1(_14)
 #define __NNL_ENUM_ARGS_15(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15) \
-    __NNL_ENUM_ARGS_9(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14) __NNL_ENUM_ARGS_1(_15)
+    __NNL_ENUM_ARGS_14(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14) __NNL_ENUM_ARGS_1(_15)
+#define __NNL_ENUM_ARGS_16(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16) \
+    __NNL_ENUM_ARGS_15(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15) __NNL_ENUM_ARGS_1(_16)
 
 #define __NNL_ENUM_ARGS_IMPL(n, ...) \
     __NNL_CAT(__NNL_ENUM_ARGS_, n)(__VA_ARGS__)

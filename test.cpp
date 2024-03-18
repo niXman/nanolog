@@ -1,5 +1,5 @@
 
-// Copyright (c) 2015-2023 niXman (i dot nixman dog gmail dot com). All
+// Copyright (c) 2015-2024 niXman (i dot nixman dog gmail dot com). All
 // rights reserved.
 //
 // This file is part of NANOLOG(https://github.com/niXman/nanolog) project.
